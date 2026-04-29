@@ -1,12 +1,8 @@
 // DAVE CODE NOT OURS
 
 #include <boundedBuffer.h>
+#include "log_entry.h"
 
-/**
- * DO NOT DELETE
- */
-template class BoundedBuffer<Ledger*>;
-template class BoundedBuffer<int>;
 
 /**
  * @brief Constructs a bounded buffer with a fixed capacity.
@@ -143,3 +139,11 @@ bool BoundedBuffer<T>::isEmpty() {
   pthread_mutex_unlock(&buffer_lock);
   return cond;
 }
+
+/**
+ * DO NOT DELETE
+ * Explicit template instantiations — must come after all definitions.
+ */
+template class BoundedBuffer<Ledger*>;
+template class BoundedBuffer<int>;
+template class BoundedBuffer<LogEntry>;
