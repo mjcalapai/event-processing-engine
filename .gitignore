@@ -1,0 +1,21 @@
+# Build artifacts
+obj/
+*.o
+
+# Executables
+event_engine_app
+event_engine_test
+
+# Zip submissions
+submission.zip
+
+# Temporary/editor files
+*~
+*.swp
+*.tmp
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
