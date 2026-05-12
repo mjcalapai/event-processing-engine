@@ -1,18 +1,30 @@
-#include "log_entry.h"
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "event_engine.h"
-#include "producer.h"
-#include "consumer.h"
-#include "bounded_buffer.h"
-#include "log_entry.h"
+
 #include <pthread.h>
 #include <list>
 #include <atomic>
+
+#include "log_entry.h"
+#include "event_engine.h"
+#include "producer.h"
+#include "consumer.h"
+#include "boundedBuffer.h"
+#include "log_entry.h"
+
 using namespace std;
 
 int load_logs(char* filename); // forward declaration
+
+std::list<LogEntry*> pendingLogs;
+BoundedBuffer<LogEntry*>* bb = nullptr;
+
+pthread_mutex_t event_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t process_lock = PTHREAD_MUTEX_INITIALIZER;
+
+std::atomic<int> produced_count{0};
+std::atomic<int> consumed_count{0};
 
 void InitEventEngine(int p, int c, int size, char* filename) {
     produced_count = 0;
@@ -67,32 +79,31 @@ void InitEventEngine(int p, int c, int size, char* filename) {
     delete bb;
 }
 
-int load_logs(const char* filename) {
+int load_logs(char* filename) {
     std::ifstream file(filename);
-        if (!file.is_open()) {
-            return -1;
+    if (!file.is_open()) {
+        return -1;
+    }
+
+    std::string line;
+    std::string error;
+
+    while (std::getline(file, line)) {
+        if (line.empty()) {
+            continue;
         }
 
-        std::string line;
-        std::string error;
+        LogEntry* entry = new LogEntry();
 
-        while (std::getline(file, line)) {
-            if (line.empty()) {
-                continue;
-            }
-
-            LogEntry* entry = new LogEntry();
-
-            if (!parseLogLine(line, *entry, error)) {
-                std::cerr << "Skipping malformed log line: " << error << std::endl;
-                delete entry;
-                continue;
-            }
-
-            pendingLogs.push_back(entry);
-            produced_count++; //will also need to increment consumer count in consumer.cpp when consumed
+        if (!parseLogLine(line, *entry, error)) {
+            std::cerr << "Skipping malformed log line: " << error << std::endl;
+            delete entry;
+            continue;
         }
 
-        return 0;
+        pendingLogs.push_back(entry);
+        produced_count++;
+    }
+
+    return 0;
 }
-

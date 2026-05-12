@@ -1,10 +1,10 @@
-_DEPS = bank.h ledger.h boundedBuffer.h
-_OBJ = bank.o ledger.o boundedBuffer.o
+_DEPS = log_entry.h severity_classifier.h boundedBuffer.h event_engine.h producer.h consumer.h
+_OBJ = log_entry.o severity_classifier.o event_engine.o producer.o consumer.o boundedBuffer.o
 _MOBJ = main.o
 _TOBJ = test.o
 
-APPBIN = bank_app
-TESTBIN = bank_test
+APPBIN = event_engine_app
+TESTBIN = event_engine_test
 
 DEBUG = -DDEBUGMODE
 
@@ -17,10 +17,11 @@ LDIR = lib
 TDIR = test
 LIBS = -lm
 XXLIBS = $(LIBS) -lstdc++ -lgtest -lgtest_main -lpthread
+
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 MOBJ = $(patsubst %,$(ODIR)/%,$(_MOBJ))
-TOBJ = $(patsubst %,$(ODIR)/%,$(_TOBJ)) 
+TOBJ = $(patsubst %,$(ODIR)/%,$(_TOBJ))
 
 $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -38,12 +39,11 @@ $(TESTBIN): $(TOBJ) $(OBJ)
 
 submission:
 	find . -name "*~" -exec rm -rf {} \;
-	zip -r submission src lib include
-
+	zip -r submission src lib include Makefile
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~
+	rm -f $(ODIR)/*.o *~ core $(IDIR)/*~
 	rm -f $(APPBIN) $(TESTBIN)
 	rm -f submission.zip

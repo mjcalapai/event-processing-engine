@@ -1,13 +1,10 @@
 #include <fstream>
 #include "producer.h"
 #include "severity_classifier.h"
+#include "event_engine.h"
 #include "log_entry.h"
-#include "bounded_buffer.h"
+#include "boundedBuffer.h"
 using namespace std;
-
-pthread_mutex_t event_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t process_lock = PTHREAD_MUTEX_INITIALIZER;
-
 
 
 
