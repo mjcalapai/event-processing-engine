@@ -144,6 +144,5 @@ bool BoundedBuffer<T>::isEmpty() {
  * DO NOT DELETE
  * Explicit template instantiations — must come after all definitions.
  */
-template class BoundedBuffer<Ledger*>;
 template class BoundedBuffer<int>;
-template class BoundedBuffer<LogEntry>;
+template class BoundedBuffer<LogEntry*>;
