@@ -1,5 +1,6 @@
 // MLFQ-inspired weighted severity scheduler
 #include "mlfq_scheduler.h"
+#include "metrics.h"
 
 
 
@@ -59,6 +60,7 @@ void MLFQScheduler::append(LogEntry* item) {
 
 void MLFQScheduler::applyAgingBoost() {
     auto now = std::chrono::steady_clock::now();
+    metrics.recordAgingBoost();
 
     for (int q = NUM_QUEUES - 1; q > 0; q--) {
 

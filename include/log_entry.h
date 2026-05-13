@@ -49,6 +49,8 @@ struct LogEntry {
     LogType     type;
     std::string payload;    // raw log message body
 
+    std::chrono::steady_clock::time_point enqueueTime;
+
     // Human-readable formatting
     std::string toString() const;
 

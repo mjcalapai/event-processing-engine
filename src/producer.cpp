@@ -27,10 +27,13 @@ void* producer(void*) {
         Severity routedSeverity = classifier.classify(*item); //verify this could be a race condition low key
         item->severity = routedSeverity;
 
+
         if (activeMode == SchedulerMode::FIFO) {
+            item->enqueueTime = std::chrono::steady_clock::now();
             bb->append(item);
         } else {
-            scheduler->append(item);
+            item->enqueueTime = std::chrono::steady_clock::now(); //putting it on both conditional branches
+            scheduler->append(item);                               // for closer to true evaluation
         }
     }
 
