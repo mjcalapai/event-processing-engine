@@ -12,6 +12,7 @@
 #include "consumer.h"
 #include "boundedBuffer.h"
 #include "log_entry.h"
+#include "metrics.h"
 
 using namespace std;
 
@@ -29,6 +30,7 @@ std::atomic<int> produced_count{0};
 std::atomic<int> consumed_count{0};
 
 void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename) {
+    metrics.start();
     activeMode = mode;
     produced_count = 0;
     consumed_count = 0;
@@ -92,6 +94,9 @@ void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename)
     for (int j = 0; j < c; j++) {
         pthread_join(consumers[j], nullptr);
     }
+
+    metrics.stop();
+    metrics.print();
 
     std::cout << "Produced: " << produced_count << std::endl;
     std::cout << "Consumed: " << consumed_count << std::endl; // looking for these numbers to match before clean up
