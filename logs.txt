@@ -38,3 +38,11 @@
 38|2026-05-12T12:00:37.000Z|auth-daemon|192.168.1.22|INFO|AUTH|User dave logged out — session duration: 00:42:17
 39|2026-05-12T12:00:38.000Z|auth-daemon|192.168.1.10|INFO|AUTH|User alice password changed successfully
 40|2026-05-12T12:00:39.000Z|firewall|0.0.0.0|INFO|NETWORK|Firewall ruleset reloaded — 214 rules active
+41|2026-05-12T12:01:00.000Z|auth-daemon|203.0.113.42|WARNING|AUTH|Failed login attempt for user carol
+42|2026-05-12T12:01:10.000Z|auth-daemon|203.0.113.42|WARNING|AUTH|Failed login attempt for user carol
+43|2026-05-12T12:01:20.000Z|auth-daemon|203.0.113.42|WARNING|AUTH|Failed login attempt for user carol
+44|2026-05-12T12:02:00.000Z|firewall|198.51.100.9|WARNING|NETWORK|Packet dropped: connection attempt on port 22
+45|2026-05-12T12:02:05.000Z|firewall|198.51.100.9|WARNING|NETWORK|Packet dropped: connection attempt on port 23
+46|2026-05-12T12:02:10.000Z|firewall|198.51.100.9|WARNING|NETWORK|Packet dropped: connection attempt on port 80
+47|2026-05-12T12:02:15.000Z|firewall|198.51.100.9|WARNING|NETWORK|Packet dropped: connection attempt on port 443
+48|2026-05-12T12:02:20.000Z|firewall|198.51.100.9|WARNING|NETWORK|Packet dropped: connection attempt on port 8080

@@ -1,5 +1,6 @@
 // usage
 // ./event_engine_app fifo 2 2 5 logs.txt
+// ./event_engine_app rr 2 2 5 logs.txt
 // ./event_engine_app weighted 2 2 5 logs.txt
 
 #include "event_engine.h"
@@ -10,7 +11,7 @@
 int main(int argc, char* argv[]) {
     if (argc != 6) {
         std::cerr << "Usage: " << argv[0]
-                  << " <fifo|weighted> <num_producers> <num_consumers> <buffer_size> <log_file>\n";
+                  << " <fifo|weighted|rr> <num_producers> <num_consumers> <buffer_size> <log_file>\n";
         return 1;
     }
 
