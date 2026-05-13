@@ -18,7 +18,7 @@ using namespace std;
 int load_logs(char* filename); // forward declaration
 
 std::list<LogEntry*> pendingLogs;
-BoundedBuffer<LogEntry*>* bb = nullptr;
+MLFQScheduler* scheduler = nullptr;
 
 pthread_mutex_t event_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t process_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -35,14 +35,17 @@ void InitEventEngine(int p, int c, int size, char* filename) {
     }
     pendingLogs.clear();
 
-    bb = new BoundedBuffer<LogEntry*>(size);
+
+    //if testing with bb, uncomment and use find and replace to swap out scheduler for bb in producer and consumer
+    // bb = new BoundedBuffer<LogEntry*>(size);
+    scheduler = new MLFQScheduler(size);
 
     pthread_t* producers = new pthread_t[p];
     pthread_t* consumers = new pthread_t[c];
 
     int x = load_logs(filename);
     if (x != 0) {
-        delete bb;
+        delete scheduler;
         delete[] producers;
         delete[] consumers;
         return;
@@ -65,18 +68,21 @@ void InitEventEngine(int p, int c, int size, char* filename) {
     }
 
     for (int i = 0; i < c; i++) {
-        bb->append(nullptr); // poison pill
+        scheduler->append(nullptr); // poison pill
     }
 
     for (int j = 0; j < c; j++) {
         pthread_join(consumers[j], nullptr);
     }
 
+    std::cout << "Produced: " << produced_count << std::endl;
+    std::cout << "Consumed: " << consumed_count << std::endl; // looking for these numbers to match before clean up
+
     delete[] producers;
     delete[] consumers;
     delete[] producer_ids;
     delete[] consumer_ids;
-    delete bb;
+    delete scheduler;
 }
 
 int load_logs(char* filename) {

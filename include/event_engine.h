@@ -1,8 +1,12 @@
+
+
 #ifndef EVENT_ENGINE_H
 #define EVENT_ENGINE_H
 
 #include "log_entry.h"
 #include "boundedBuffer.h"
+#include "mlfq_scheduler.h"
+
 
 #include <list>
 #include <pthread.h>
@@ -14,6 +18,7 @@ extern pthread_mutex_t event_lock;
 extern pthread_mutex_t process_lock;
 
 extern BoundedBuffer<LogEntry*>* bb;
+extern MLFQScheduler* scheduler;
 
 extern std::atomic<int> produced_count;
 extern std::atomic<int> consumed_count;
