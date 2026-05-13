@@ -20,7 +20,8 @@ void* consumer(void*) {
 
     while (true) {
 
-        LogEntry* item = bb->remove();
+        // LogEntry* item = bb->remove();
+        LogEntry* item = scheduler->remove();
 
         if (item == nullptr) {
             break;

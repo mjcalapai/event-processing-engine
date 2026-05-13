@@ -27,7 +27,8 @@ void* producer(void*) {
         Severity routedSeverity = classifier.classify(*item); //verify this could be a race condition low key
         item->severity = routedSeverity;
 
-        bb->append(item);
+        // bb->append(item);
+        scheduler->append(item);
     }
 
     return nullptr;

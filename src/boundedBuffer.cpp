@@ -1,5 +1,3 @@
-// DAVE CODE NOT OURS
-
 #include <boundedBuffer.h>
 #include "log_entry.h"
 
@@ -21,7 +19,6 @@ BoundedBuffer<T>::BoundedBuffer(int N) {
 
 template <typename T>
 BoundedBuffer<T>::~BoundedBuffer() {
-  // TODO: destructor to clean up anything necessary
   delete[] buffer;
   pthread_mutex_destroy(&buffer_lock);
   pthread_cond_destroy(&buffer_not_full);
@@ -31,7 +28,6 @@ BoundedBuffer<T>::~BoundedBuffer() {
 
 template <typename T>
 void BoundedBuffer<T>::append(T data) {
-  // TODO: append a data item to the circular buffer
   pthread_mutex_lock(&buffer_lock);
   while (buffer_cnt == buffer_size) {
     pthread_cond_wait(&buffer_not_full, &buffer_lock);
