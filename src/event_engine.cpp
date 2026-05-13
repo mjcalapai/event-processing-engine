@@ -18,7 +18,9 @@ using namespace std;
 int load_logs(char* filename); // forward declaration
 
 std::list<LogEntry*> pendingLogs;
+BoundedBuffer<LogEntry*>* bb = nullptr;
 MLFQScheduler* scheduler = nullptr;
+SchedulerMode activeMode = SchedulerMode::FIFO;
 
 pthread_mutex_t event_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t process_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -26,7 +28,8 @@ pthread_mutex_t process_lock = PTHREAD_MUTEX_INITIALIZER;
 std::atomic<int> produced_count{0};
 std::atomic<int> consumed_count{0};
 
-void InitEventEngine(int p, int c, int size, char* filename) {
+void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename) {
+    activeMode = mode;
     produced_count = 0;
     consumed_count = 0;
 
@@ -36,9 +39,13 @@ void InitEventEngine(int p, int c, int size, char* filename) {
     pendingLogs.clear();
 
 
-    //if testing with bb, uncomment and use find and replace to swap out scheduler for bb in producer and consumer
-    // bb = new BoundedBuffer<LogEntry*>(size);
-    scheduler = new MLFQScheduler(size);
+    if (activeMode == SchedulerMode::FIFO) {
+        bb = new BoundedBuffer<LogEntry*>(size);
+        scheduler = nullptr;
+    } else {
+        scheduler = new MLFQScheduler(size);
+        bb = nullptr;
+    }
 
     pthread_t* producers = new pthread_t[p];
     pthread_t* consumers = new pthread_t[c];
@@ -67,8 +74,16 @@ void InitEventEngine(int p, int c, int size, char* filename) {
         pthread_join(producers[i], nullptr);
     }
 
+    // for (int i = 0; i < c; i++) {
+    //     scheduler->append(nullptr); // poison pill
+    // }
+
     for (int i = 0; i < c; i++) {
-        scheduler->append(nullptr); // poison pill
+        if (activeMode == SchedulerMode::FIFO) {
+            bb->append(nullptr);
+        } else {
+            scheduler->append(nullptr);
+        }
     }
 
     for (int j = 0; j < c; j++) {
@@ -82,6 +97,7 @@ void InitEventEngine(int p, int c, int size, char* filename) {
     delete[] consumers;
     delete[] producer_ids;
     delete[] consumer_ids;
+    delete bb;
     delete scheduler;
 }
 

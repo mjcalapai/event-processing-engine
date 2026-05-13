@@ -19,9 +19,13 @@ void handleDetection(LogEntry* item) { //basic, no correlation
 void* consumer(void*) {
 
     while (true) {
+        LogEntry* item = nullptr;
 
-        // LogEntry* item = bb->remove();
-        LogEntry* item = scheduler->remove();
+        if (activeMode == SchedulerMode::FIFO) {
+            item = bb->remove();
+        } else {
+            item = scheduler->remove();
+        }
 
         if (item == nullptr) {
             break;
