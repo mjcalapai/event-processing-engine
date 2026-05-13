@@ -1,5 +1,5 @@
-_DEPS = log_entry.h severity_classifier.h boundedBuffer.h event_engine.h producer.h consumer.h mlfq_scheduler.h metrics.h
-_OBJ = log_entry.o severity_classifier.o event_engine.o producer.o consumer.o boundedBuffer.o mlfq_scheduler.o metrics.o
+_DEPS = log_entry.h severity_classifier.h boundedBuffer.h event_engine.h producer.h consumer.h mlfq_scheduler.h metrics.h correlation_engine.h
+_OBJ = log_entry.o severity_classifier.o event_engine.o producer.o consumer.o boundedBuffer.o mlfq_scheduler.o metrics.o correlation_engine.o
 _MOBJ = main.o
 _TOBJ = test.o
 

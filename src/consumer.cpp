@@ -1,6 +1,7 @@
 #include "consumer.h"
 #include "event_engine.h"
 #include "metrics.h"
+#include "correlation_engine.h"
 #include <iostream>
 
 void handleDetection(LogEntry* item) {
@@ -29,7 +30,7 @@ void* consumer(void*) {
         }
 
         handleDetection(item);
-
+        correlationEngine.process(item);
         metrics.recordProcessed(item, item->enqueueTime);
 
         pthread_mutex_lock(&process_lock);
