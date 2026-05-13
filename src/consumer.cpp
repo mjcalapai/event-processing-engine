@@ -26,7 +26,7 @@ void* consumer(void*) {
             break;
         }
 
-        handleDetection(*item);
+        handleDetection(item);
 
         pthread_mutex_lock(&process_lock);
 
