@@ -17,6 +17,7 @@ extern pthread_mutex_t process_lock;
 
 enum class SchedulerMode {
     FIFO,
+    RR,
     WEIGHTED
 };
 

@@ -42,8 +42,11 @@ void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename)
     if (activeMode == SchedulerMode::FIFO) {
         bb = new BoundedBuffer<LogEntry*>(size);
         scheduler = nullptr;
+    } else if (activeMode == SchedulerMode::RR) {
+        scheduler = new MLFQScheduler(size, MLFQPolicy::RR);
+        bb = nullptr;
     } else {
-        scheduler = new MLFQScheduler(size);
+        scheduler = new MLFQScheduler(size, MLFQPolicy::WEIGHTED);
         bb = nullptr;
     }
 

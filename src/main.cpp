@@ -22,8 +22,12 @@ int main(int argc, char* argv[]) {
         mode = SchedulerMode::FIFO;
     } else if (modeArg == "weighted") {
         mode = SchedulerMode::WEIGHTED;
-    } else {
-        std::cerr << "Invalid scheduler mode. Use fifo or weighted.\n";
+    } 
+    else if (modeArg == "rr") {
+        mode = SchedulerMode::RR;
+    }
+    else {
+        std::cerr << "Invalid scheduler mode. Use fifo, rr, or weighted.\n";
         return 1;
     }
 

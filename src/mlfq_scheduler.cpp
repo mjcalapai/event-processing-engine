@@ -1,8 +1,10 @@
 // MLFQ-inspired weighted severity scheduler
 #include "mlfq_scheduler.h"
 
-MLFQScheduler::MLFQScheduler(int capacity)
-    : capacity(capacity), count(0), serviceCounter(0) {
+
+
+MLFQScheduler::MLFQScheduler(int capacity, MLFQPolicy policy)
+    : capacity(capacity), count(0), serviceCounter(0), policy(policy) {
     pthread_mutex_init(&lock, nullptr);
     pthread_cond_init(&not_full, nullptr);
     pthread_cond_init(&not_empty, nullptr);
@@ -34,10 +36,18 @@ void MLFQScheduler::append(LogEntry* item) {
     }
 
     if (item == nullptr) {
-        queues[0].push_back(nullptr);
+        QueuedLog poison;
+        poison.entry = nullptr;
+        poison.enqueueTime = std::chrono::steady_clock::now();
+        queues[0].push_back(poison);
     } else {
         int q = severityToQueue(item->severity);
-        queues[q].push_back(item);
+        // queues[q].push_back(item);
+        QueuedLog ql;
+        ql.entry = item;
+        ql.enqueueTime = std::chrono::steady_clock::now();
+
+        queues[q].push_back(ql);
     }
 
     count++;
@@ -46,32 +56,74 @@ void MLFQScheduler::append(LogEntry* item) {
     pthread_mutex_unlock(&lock);
 }
 
+
+void MLFQScheduler::applyAgingBoost() {
+    auto now = std::chrono::steady_clock::now();
+
+    for (int q = NUM_QUEUES - 1; q > 0; q--) {
+
+        auto& curQueue = queues[q];
+
+        for (auto it = curQueue.begin(); it != curQueue.end();) {
+
+            auto waited =
+                std::chrono::duration_cast<std::chrono::seconds>(
+                    now - it->enqueueTime
+                ).count();
+
+            if (waited >= agingThresholdSeconds[q]) {
+
+                QueuedLog promoted = *it;
+
+                it = curQueue.erase(it);
+
+                queues[q - 1].push_back(promoted);
+
+            } else {
+                ++it;
+            }
+        }
+    }
+}
+
+
 int MLFQScheduler::chooseQueue() {
-    /*
-      Weighted MLFQ-style policy:
-      - Critical gets frequent service
-      - Error gets frequent service
-      - Lower queues still get scheduled
-      - Prevents pure-priority starvation
-    */
+    if (policy == MLFQPolicy::RR) {
+        static const int rrSchedule[] = {
+            0, 1, 2, 3, 4
+        };
 
-    static const int schedule[] = {
-        0, 0, 0, 0,   // CRITICAL
-        1, 1, 1,      // ERROR
-        2, 2,         // WARNING
-        3,            // INFO
-        4             // DEBUG
-    };
+        static const int rrSize = sizeof(rrSchedule) / sizeof(rrSchedule[0]);
 
-    static const int scheduleSize = sizeof(schedule) / sizeof(schedule[0]);
+        for (int attempt = 0; attempt < rrSize; attempt++) {
+            int idx = (serviceCounter + attempt) % rrSize;
+            int q = rrSchedule[idx];
 
-    for (int attempt = 0; attempt < scheduleSize; attempt++) {
-        int idx = (serviceCounter + attempt) % scheduleSize;
-        int q = schedule[idx];
+            if (!queues[q].empty()) {
+                serviceCounter = (idx + 1) % rrSize;
+                return q;
+            }
+        }
+    } else {
+        static const int weightedSchedule[] = {
+            0, 0, 0, 0,
+            1, 1, 1,
+            2, 2,
+            3,
+            4
+        };
 
-        if (!queues[q].empty()) {
-            serviceCounter = (idx + 1) % scheduleSize;
-            return q;
+        static const int weightedSize =
+            sizeof(weightedSchedule) / sizeof(weightedSchedule[0]);
+
+        for (int attempt = 0; attempt < weightedSize; attempt++) {
+            int idx = (serviceCounter + attempt) % weightedSize;
+            int q = weightedSchedule[idx];
+
+            if (!queues[q].empty()) {
+                serviceCounter = (idx + 1) % weightedSize;
+                return q;
+            }
         }
     }
 
@@ -85,10 +137,12 @@ LogEntry* MLFQScheduler::remove() {
         pthread_cond_wait(&not_empty, &lock);
     }
 
+    applyAgingBoost();
     int q = chooseQueue();
 
-    LogEntry* item = queues[q].front();
+    QueuedLog ql = queues[q].front();
     queues[q].pop_front();
+    LogEntry* item = ql.entry;
     count--;
 
     pthread_cond_signal(&not_full);
