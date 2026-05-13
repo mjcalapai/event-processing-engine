@@ -27,8 +27,11 @@ void* producer(void*) {
         Severity routedSeverity = classifier.classify(*item); //verify this could be a race condition low key
         item->severity = routedSeverity;
 
-        // bb->append(item);
-        scheduler->append(item);
+        if (activeMode == SchedulerMode::FIFO) {
+            bb->append(item);
+        } else {
+            scheduler->append(item);
+        }
     }
 
     return nullptr;
