@@ -7,9 +7,20 @@
 #include <pthread.h>
 #include <chrono>
 
+struct QueuedLog {
+    LogEntry* entry;
+
+    std::chrono::steady_clock::time_point enqueueTime;
+};
+
+enum class MLFQPolicy {
+    RR,
+    WEIGHTED
+};
+
 class MLFQScheduler {
 public:
-    explicit MLFQScheduler(int capacity);
+    explicit MLFQScheduler(int capacity, MLFQPolicy policy);
     ~MLFQScheduler();
 
     void append(LogEntry* item);
@@ -20,7 +31,7 @@ public:
 private:
     static const int NUM_QUEUES = 5;
 
-    std::deque<LogEntry*> queues[NUM_QUEUES];
+    std::deque<QueuedLog> queues[NUM_QUEUES];
 
     int capacity;
     int count;
@@ -33,6 +44,16 @@ private:
 
     int severityToQueue(Severity s);
     int chooseQueue();
+    void applyAgingBoost();
+
+    int agingThresholdSeconds[NUM_QUEUES] = {
+        0, // CRITICAL
+        8, // ERROR
+        6, // WARNING
+        4, // INFO
+        3  // DEBUG
+    };
+    MLFQPolicy policy;
 };
 
 #endif
