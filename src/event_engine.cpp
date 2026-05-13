@@ -72,6 +72,9 @@ void InitEventEngine(int p, int c, int size, char* filename) {
         pthread_join(consumers[j], nullptr);
     }
 
+    std::cout << "Produced: " << produced_count << std::endl;
+    std::cout << "Consumed: " << consumed_count << std::endl; // looking for these numbers to match before clean up
+
     delete[] producers;
     delete[] consumers;
     delete[] producer_ids;
