@@ -18,15 +18,26 @@ TDIR = test
 LIBS = -lm
 XXLIBS = $(LIBS) -lstdc++ -lgtest -lgtest_main -lpthread
 
+all: $(APPBIN) $(TESTBIN) submission
+
+$(ODIR):
+	mkdir -p $(ODIR)
+
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 MOBJ = $(patsubst %,$(ODIR)/%,$(_MOBJ))
 TOBJ = $(patsubst %,$(ODIR)/%,$(_TOBJ))
 
-$(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
+# $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
+# 	$(CC) -c -o $@ $< $(CFLAGS)
+
+# $(ODIR)/%.o: $(TDIR)/%.cpp $(DEPS)
+# 	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS) | $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-$(ODIR)/%.o: $(TDIR)/%.cpp $(DEPS)
+$(ODIR)/%.o: $(TDIR)/%.cpp $(DEPS) | $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 all: $(APPBIN) $(TESTBIN) submission
@@ -39,7 +50,8 @@ $(TESTBIN): $(TOBJ) $(OBJ)
 
 submission:
 	find . -name "*~" -exec rm -rf {} \;
-	zip -r submission src lib include Makefile
+# 	zip -r submission src lib include Makefile
+	zip -r submission.zip src include test Makefile README.md logs.txt
 
 .PHONY: clean
 
