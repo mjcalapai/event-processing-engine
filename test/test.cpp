@@ -4,6 +4,8 @@
 #include "boundedBuffer.h"
 #include "log_entry.h"
 #include "mlfq_scheduler.h"
+#include "correlation_engine.h"
+#include "metrics.h"
 
 static LogEntry* makeLog(uint64_t id, Severity severity) {
     LogEntry* log = new LogEntry();
@@ -88,6 +90,136 @@ TEST(MLFQSchedulerTest, PoisonPillReturnsNullptr) {
     LogEntry* item = scheduler.remove();
 
     EXPECT_EQ(item, nullptr);
+}
+
+TEST(CorrelationEngineTest, NoAlertOnNormalAuth) {
+    int initialAlerts = metrics.getAlerts();
+    CorrelationEngine engine;
+    
+    LogEntry log;
+    log.type = LogType::AUTH;
+    log.source_ip = "10.0.0.1";
+    log.payload = "successful login";
+    log.timestamp = now();
+    
+    for (int i = 0; i < 5; i++) {
+        engine.process(&log);
+    }
+    
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts);
+}
+
+TEST(CorrelationEngineTest, AlertOnFailedLoginBurst) {
+    int initialAlerts = metrics.getAlerts();
+    CorrelationEngine engine;
+    
+    LogEntry log;
+    log.type = LogType::AUTH;
+    log.source_ip = "10.0.0.2";
+    log.payload = "Failed Login for user admin";
+
+    log.timestamp = now();
+    engine.process(&log);
+    engine.process(&log);
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts);
+    
+    engine.process(&log);
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts + 1);
+}
+
+TEST(CorrelationEngineTest, NoAlertIfFailedLoginsAreSpreadOut) {
+    int initialAlerts = metrics.getAlerts();
+    CorrelationEngine engine;
+    
+    LogEntry log;
+    log.type = LogType::AUTH;
+    log.source_ip = "10.0.0.3";
+    log.payload = "failed login";
+    
+    log.timestamp = now() - std::chrono::seconds(70);
+    engine.process(&log);
+    
+    log.timestamp = now() - std::chrono::seconds(35);
+    engine.process(&log);
+    
+    log.timestamp = now();
+    engine.process(&log);
+    
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts);
+}
+
+TEST(CorrelationEngineTest, AlertOnPortScan) {
+    int initialAlerts = metrics.getAlerts();
+    CorrelationEngine engine;
+    
+    LogEntry log;
+    log.type = LogType::NETWORK;
+    log.source_ip = "10.0.0.4";
+    log.payload = "port 80 connection attempt";
+    
+    for (int i = 0; i < 4; i++) {
+        log.timestamp = now();
+        engine.process(&log);
+    }
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts);
+    
+    log.timestamp = now();
+    engine.process(&log);
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts + 1);
+}
+
+TEST(CorrelationEngineTest, AlertOnPortScanPacketDropped) {
+    int initialAlerts = metrics.getAlerts();
+    CorrelationEngine engine;
+    
+    LogEntry log;
+    log.type = LogType::NETWORK;
+    log.source_ip = "10.0.0.44";
+    log.payload = "port 80 packet dropped";
+    
+    for (int i = 0; i < 4; i++) {
+        log.timestamp = now();
+        engine.process(&log);
+    }
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts);
+    
+    log.timestamp = now();
+    engine.process(&log);
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts + 1);
+}
+
+TEST(CorrelationEngineTest, NoAlertOnIrrelevantNetworkEvents) {
+    int initialAlerts = metrics.getAlerts();
+    CorrelationEngine engine;
+    
+    LogEntry log;
+    log.type = LogType::NETWORK;
+    log.source_ip = "10.0.0.5";
+    log.payload = "normal traffic";
+    
+    for (int i = 0; i < 10; i++) {
+        log.timestamp = now();
+        engine.process(&log);
+    }
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts);
+}
+
+TEST(CorrelationEngineTest, CaseInsensitiveMatch) {
+    int initialAlerts = metrics.getAlerts();
+    CorrelationEngine engine;
+    
+    LogEntry log;
+    log.type = LogType::AUTH;
+    log.source_ip = "10.0.0.6";
+
+    log.payload = "FaIlEd LoGiN attempt";
+    log.timestamp = now();
+    
+    engine.process(&log);
+    engine.process(&log);
+    engine.process(&log);
+    
+    EXPECT_EQ(metrics.getAlerts(), initialAlerts + 1);
 }
 
 int main(int argc, char** argv) {

@@ -44,6 +44,10 @@ void Metrics::recordAgingBoost() {
     agingBoosts++;
 }
 
+int Metrics::getAlerts() const {
+    return alerts.load();
+}
+
 void Metrics::print() const {
     auto runtimeMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(
