@@ -10,13 +10,13 @@ DEBUG = -DDEBUGMODE
 
 IDIR = include
 CC = g++
-CFLAGS = -I$(IDIR) -Wall $(DEBUG) -Wextra -g -pthread
+CFLAGS = -I$(IDIR) -I/opt/homebrew/include -Wall $(DEBUG) -Wextra -g -pthread -std=c++17
 ODIR = obj
 SDIR = src
 LDIR = lib
 TDIR = test
 LIBS = -lm
-XXLIBS = $(LIBS) -lstdc++ -lgtest -lgtest_main -lpthread
+XXLIBS = $(LIBS) -L/opt/homebrew/lib -lstdc++ -lgtest -lgtest_main -lpthread
 
 all: $(APPBIN) $(TESTBIN) submission
 

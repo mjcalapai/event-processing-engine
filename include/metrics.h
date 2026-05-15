@@ -16,6 +16,8 @@ public:
     void recordAlert();
     void recordAgingBoost();
 
+    int getAlerts() const;
+
     void print() const;
 
 private:
