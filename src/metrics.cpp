@@ -19,20 +19,20 @@ void Metrics::recordProcessed(const LogEntry* log,
                               std::chrono::steady_clock::time_point enqueueTime) {
     auto now = std::chrono::steady_clock::now();
 
-    long long latencyMs =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
+    long long latencyNs =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
             now - enqueueTime
         ).count();
 
     int idx = severityIndex(log->severity);
 
     processed++;
-    totalLatencyMs += latencyMs;
-    latencyBySeverity[idx] += latencyMs;
+    totalLatencyNs += latencyNs;
+    latencyBySeverity[idx] += latencyNs;
     countBySeverity[idx]++;
 
-    if (latencyMs > maxLatencyBySeverity[idx]) {
-        maxLatencyBySeverity[idx] = latencyMs;
+    if (latencyNs > maxLatencyBySeverity[idx]) {
+        maxLatencyBySeverity[idx] = latencyNs;
     }
 }
 
@@ -64,8 +64,8 @@ void Metrics::print() const {
 
     if (processed > 0) {
         std::cout << "Average latency: "
-                  << totalLatencyMs / processed
-                  << " ms\n";
+                  << totalLatencyNs / processed
+                  << " ns\n";
     }
 
     const char* names[5] = {
@@ -81,9 +81,9 @@ void Metrics::print() const {
 
         std::cout << names[i]
                   << " avg=" << latencyBySeverity[i] / countBySeverity[i]
-                  << " ms"
+                  << " ns"
                   << ", max=" << maxLatencyBySeverity[i]
-                  << " ms"
+                  << " ns"
                   << ", count=" << countBySeverity[i]
                   << "\n";
     }
