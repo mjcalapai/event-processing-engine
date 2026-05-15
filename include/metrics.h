@@ -28,7 +28,7 @@ private:
     std::atomic<int> alerts{0};
     std::atomic<int> agingBoosts{0};
 
-    long long totalLatencyMs = 0;
+    long long totalLatencyNs = 0;
     long long latencyBySeverity[5] = {0, 0, 0, 0, 0};
     long long maxLatencyBySeverity[5] = {0, 0, 0, 0, 0};
     int countBySeverity[5] = {0, 0, 0, 0, 0};
