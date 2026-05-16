@@ -40,7 +40,7 @@ $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS) | $(ODIR)
 $(ODIR)/%.o: $(TDIR)/%.cpp $(DEPS) | $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: $(APPBIN) $(TESTBIN) submission
+# all: $(APPBIN) $(TESTBIN) submission
 
 $(APPBIN): $(OBJ) $(MOBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
@@ -51,7 +51,7 @@ $(TESTBIN): $(TOBJ) $(OBJ)
 submission:
 	find . -name "*~" -exec rm -rf {} \;
 # 	zip -r submission src lib include Makefile
-	zip -r submission.zip src include test Makefile README.md logs.txt
+	zip -r submission.zip src include test Makefile README.md logs.txt generate_logs.cpp
 
 .PHONY: clean
 
