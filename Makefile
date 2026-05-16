@@ -18,29 +18,20 @@ TDIR = test
 LIBS = -lm
 XXLIBS = $(LIBS) -L/opt/homebrew/lib -lstdc++ -lgtest -lgtest_main -lpthread
 
-all: $(APPBIN) $(TESTBIN) submission
-
-$(ODIR):
-	mkdir -p $(ODIR)
-
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 MOBJ = $(patsubst %,$(ODIR)/%,$(_MOBJ))
 TOBJ = $(patsubst %,$(ODIR)/%,$(_TOBJ))
 
-# $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
-# 	$(CC) -c -o $@ $< $(CFLAGS)
-
-# $(ODIR)/%.o: $(TDIR)/%.cpp $(DEPS)
-# 	$(CC) -c -o $@ $< $(CFLAGS)
-
-$(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS) | $(ODIR)
+$(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
+	mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-$(ODIR)/%.o: $(TDIR)/%.cpp $(DEPS) | $(ODIR)
+$(ODIR)/%.o: $(TDIR)/%.cpp $(DEPS)
+	mkdir -p $(ODIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-# all: $(APPBIN) $(TESTBIN) submission
+all: $(APPBIN) $(TESTBIN) submission
 
 $(APPBIN): $(OBJ) $(MOBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
@@ -50,8 +41,7 @@ $(TESTBIN): $(TOBJ) $(OBJ)
 
 submission:
 	find . -name "*~" -exec rm -rf {} \;
-# 	zip -r submission src lib include Makefile
-	zip -r submission.zip src include test Makefile README.md logs.txt generate_logs.cpp
+	zip -r submission src lib include Makefile generate_logs.cpp
 
 .PHONY: clean
 
