@@ -9,9 +9,12 @@
 #include <string>
 
 int main(int argc, char* argv[]) {
-    if (argc != 6) {
+    bool isJson = false;
+    if (argc >= 7 && std::string(argv[6]) == "--json") {
+        isJson = true;
+    } else if (argc != 6) {
         std::cerr << "Usage: " << argv[0]
-                  << " <fifo|weighted|rr> <num_producers> <num_consumers> <buffer_size> <log_file>\n";
+                  << " <fifo|weighted|rr> <num_producers> <num_consumers> <buffer_size> <log_file> [--json]\n";
         return 1;
     }
 
@@ -36,7 +39,7 @@ int main(int argc, char* argv[]) {
     int c = std::atoi(argv[3]);
     int size = std::atoi(argv[4]);
 
-    InitEventEngine(mode, p, c, size, argv[5]);
+    InitEventEngine(mode, p, c, size, argv[5], isJson);
 
     return 0;
 }

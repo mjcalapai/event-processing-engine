@@ -48,7 +48,7 @@ int Metrics::getAlerts() const {
     return alerts.load();
 }
 
-void Metrics::print() const {
+void Metrics::print(bool json) const {
     auto runtimeMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(
             endTime - startTime
@@ -56,6 +56,35 @@ void Metrics::print() const {
 
     double runtimeSec = runtimeMs / 1000.0;
     double throughput = runtimeSec > 0 ? processed / runtimeSec : 0.0;
+
+    const char* names[5] = {
+        "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+    };
+
+    if (json) {
+        std::cout << "{\n";
+        std::cout << "  \"runtimeMs\": " << runtimeMs << ",\n";
+        std::cout << "  \"processed\": " << processed << ",\n";
+        std::cout << "  \"throughput\": " << throughput << ",\n";
+        std::cout << "  \"averageLatencyNs\": " << (processed > 0 ? totalLatencyNs / processed : 0) << ",\n";
+        std::cout << "  \"latencyBySeverity\": {\n";
+        bool first = true;
+        for (int i = 0; i < 5; i++) {
+            if (countBySeverity[i] == 0) continue;
+            if (!first) std::cout << ",\n";
+            std::cout << "    \"" << names[i] << "\": {";
+            std::cout << "\"avg\": " << latencyBySeverity[i] / countBySeverity[i] << ", ";
+            std::cout << "\"max\": " << maxLatencyBySeverity[i] << ", ";
+            std::cout << "\"count\": " << countBySeverity[i];
+            std::cout << "}";
+            first = false;
+        }
+        std::cout << "\n  },\n";
+        std::cout << "  \"alerts\": " << alerts << ",\n";
+        std::cout << "  \"agingBoosts\": " << agingBoosts << "\n";
+        std::cout << "}\n";
+        return;
+    }
 
     std::cout << "\n=== Metrics ===\n";
     std::cout << "Total runtime: " << runtimeMs << " ms\n";
@@ -68,9 +97,7 @@ void Metrics::print() const {
                   << " ns\n";
     }
 
-    const char* names[5] = {
-        "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
-    };
+
 
     std::cout << "\nLatency by severity:\n";
 

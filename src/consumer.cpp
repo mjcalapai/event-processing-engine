@@ -6,11 +6,11 @@
 
 void handleDetection(LogEntry* item) {
     if (item->severity == Severity::CRITICAL) {
-        std::cout << "[CRITICAL ALERT] " << item->toString() << std::endl;
+        std::cerr << "[CRITICAL ALERT] " << item->toString() << std::endl;
         metrics.recordAlert();
     }
     else if (item->severity == Severity::ERROR) {
-        std::cout << "[ERROR ALERT] " << item->toString() << std::endl;
+        std::cerr << "[ERROR ALERT] " << item->toString() << std::endl;
         metrics.recordAlert();
     }
 }
