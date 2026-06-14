@@ -29,7 +29,7 @@ pthread_mutex_t process_lock = PTHREAD_MUTEX_INITIALIZER;
 std::atomic<int> produced_count{0};
 std::atomic<int> consumed_count{0};
 
-void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename) {
+void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename, bool isJson) {
     metrics.start();
     activeMode = mode;
     produced_count = 0;
@@ -96,10 +96,12 @@ void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename)
     }
 
     metrics.stop();
-    metrics.print();
+    metrics.print(isJson);
 
-    std::cout << "Produced: " << produced_count << std::endl;
-    std::cout << "Consumed: " << consumed_count << std::endl; // looking for these numbers to match before clean up
+    if (!isJson) {
+        std::cout << "Produced: " << produced_count << std::endl;
+        std::cout << "Consumed: " << consumed_count << std::endl; // looking for these numbers to match before clean up
+    }
 
     delete[] producers;
     delete[] consumers;
@@ -110,15 +112,24 @@ void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename)
 }
 
 int load_logs(char* filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        return -1;
+    std::istream* inStream;
+    std::ifstream file;
+    std::string fname(filename);
+
+    if (fname == "-") {
+        inStream = &std::cin;
+    } else {
+        file.open(filename);
+        if (!file.is_open()) {
+            return -1;
+        }
+        inStream = &file;
     }
 
     std::string line;
     std::string error;
 
-    while (std::getline(file, line)) {
+    while (std::getline(*inStream, line)) {
         if (line.empty()) {
             continue;
         }

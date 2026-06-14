@@ -28,7 +28,7 @@ extern SchedulerMode activeMode;
 extern std::atomic<int> produced_count;
 extern std::atomic<int> consumed_count;
 
-void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename);
+void InitEventEngine(SchedulerMode mode, int p, int c, int size, char* filename, bool isJson = false);
 
 int load_logs(char* filename);
 

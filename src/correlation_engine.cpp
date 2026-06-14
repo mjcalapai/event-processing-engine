@@ -67,7 +67,7 @@ void CorrelationEngine::checkFailedLogin(const LogEntry* log) {
     pruneOld(events, log->timestamp);
 
     if (static_cast<int>(events.size()) == failedLoginThreshold) {
-        std::cout << "[CORRELATED ALERT] Possible brute-force login attempt from "
+        std::cerr << "[CORRELATED ALERT] Possible brute-force login attempt from "
                   << log->source_ip
                   << " — "
                   << events.size()
@@ -100,7 +100,7 @@ void CorrelationEngine::checkPortScan(const LogEntry* log) {
     pruneOld(events, log->timestamp);
 
     if (static_cast<int>(events.size()) == portScanThreshold) {
-        std::cout << "[CORRELATED ALERT] Possible port scan from "
+        std::cerr << "[CORRELATED ALERT] Possible port scan from "
                   << log->source_ip
                   << " — "
                   << events.size()
