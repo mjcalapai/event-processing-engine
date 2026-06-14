@@ -8,6 +8,13 @@ struct SeverityMetrics: Decodable {
     let count: Int
 }
 
+struct AlertEvent: Identifiable, Sendable {
+    let id = UUID()
+    let level: String
+    let payload: String
+    let rawString: String
+}
+
 struct MetricsResult: Decodable {
     let runtimeMs: Int
     let processed: Int
@@ -22,6 +29,7 @@ class EngineManager: ObservableObject, @unchecked Sendable {
     @Published var isRunning = false
     @Published var consoleOutput: String = ""
     @Published var metrics: MetricsResult?
+    @Published var alertsList: [AlertEvent] = []
 
     func runEngine(with logs: String, mode: String = "fifo") {
         guard !isRunning else { return }
@@ -112,10 +120,27 @@ class EngineManager: ObservableObject, @unchecked Sendable {
                 let outString = String(data: outData, encoding: .utf8) ?? ""
                 let errString = String(data: errData, encoding: .utf8) ?? ""
                 
+                var parsedAlerts = [AlertEvent]()
+                var remainingErrOutput = ""
+                
+                let errLines = errString.split(separator: "\n")
+                for line in errLines {
+                    let strLine = String(line)
+                    if strLine.contains("[CRITICAL ALERT]") || strLine.contains("[ERROR ALERT]") {
+                        let level = strLine.contains("[CRITICAL ALERT]") ? "CRITICAL" : "ERROR"
+                        let parts = strLine.split(separator: "|", maxSplits: 1)
+                        let payload = parts.count > 1 ? String(parts[1]).trimmingCharacters(in: .whitespaces) : strLine
+                        parsedAlerts.append(AlertEvent(level: level, payload: payload, rawString: strLine))
+                    } else {
+                        remainingErrOutput += strLine + "\n"
+                    }
+                }
+                
                 DispatchQueue.main.async {
+                    self.alertsList = parsedAlerts
                     self.consoleOutput += outString
-                    if !errString.isEmpty {
-                        self.consoleOutput += "\n[Error]\n" + errString
+                    if !remainingErrOutput.isEmpty {
+                        self.consoleOutput += "\n[Error]\n" + remainingErrOutput
                     }
                     self.isRunning = false
                     
